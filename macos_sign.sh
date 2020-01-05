@@ -14,8 +14,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTS=-h
-LONGOPTS=signing-password:,cert-file:,cert-name:,target-binary:,help
+OPTS=h,v
+LONGOPTS=signing-password:,cert-file:,cert-name:,target-binary:,help,verbose
 
 ! PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@"  )
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
@@ -27,7 +27,6 @@ if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 fi
 
 eval set -- "$PARSED"
-
 
 while true; do
     case "$1" in
@@ -47,9 +46,13 @@ while true; do
         TARGET_BINARY=$2
         shift 2
         ;;
+    -v|--verbose)
+        VERBOSE=1
+        shift 1
+        ;;
     -h|--help)
         echo "Usage: $0 --signing-password=<cert_password> --cert-name='<name_of_cert>' --cert-file=<path-to-certfile> --target-binary=<TARGET_BINARY>"
-        echo "Example: $0 --signing-password=\$DDEV_MACOS_SIGNING_PASSWORD --cert-file=../../../certfiles/ddev_developer_id_cert.p12 --cert-name='Developer ID Application: DRUD Technology, LLC (3BAN66AG5M)' --target-binary=ddev"
+        echo "Example: $0 --signing-password=\$DDEV_MACOS_SIGNING_PASSWORD --cert-file=../../../certfiles/ddev_developer_id_cert.p12 --cert-name='Developer ID Application: DRUD Technology, LLC (3BAN66AG5M)' --target-binary=ddev --verbose"
         exit 0
         ;;
     --)
@@ -75,5 +78,8 @@ security list-keychains -s buildagent && security default-keychain -s buildagent
 security import ${CERT_FILE} -k buildagent -P "${SIGNING_PASSWORD}" -T /usr/bin/codesign >/dev/null
 security set-key-partition-list -S apple-tool:,apple: -s -k "${SIGNING_PASSWORD}" buildagent >/dev/null
 codesign --keychain buildagent -s "${CERT_NAME}" --timestamp --options runtime ${TARGET_BINARY}
-codesign -vv -d ${TARGET_BINARY}
+codesign -v ${TARGET_BINARY}
+if [ ! -z ${VERBOSE:-} ]; then
+    codesign -vv -d ${TARGET_BINARY}
+fi
 echo "Signed ${TARGET_BINARY} with ${CERT_NAME}"
