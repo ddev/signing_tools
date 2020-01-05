@@ -1,0 +1,3 @@
+
+test:
+	bats tests
