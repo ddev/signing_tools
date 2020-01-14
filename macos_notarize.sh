@@ -89,16 +89,18 @@ if [ -z "${REQUEST_UUID}" ]; then
 fi
 
 # Wait for "Package Approved"
-timeout 10m bash -c "while ! xcrun altool --notarization-info ${REQUEST_UUID} --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | grep 'Package Approved' ; do
-    sleep 60;
-done"
+timeout 10m bash -c "
+    while ! xcrun altool --notarization-info ${REQUEST_UUID} --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | grep -q 'Package Approved' ; do
+        sleep 60;
+    done"
 
-echo REQUEST_UUID=$REQUEST_UUID
+echo "Package Approved: REQUEST_UUID=$REQUEST_UUID can be accessed with this query: xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --output-format xml --password app_specific_password"
 
-# Wait until the response is fully filled out (7 items in keys
-timeout 10m bash -c "while [ \"$(xcrun altool --notarization-info ${REQUEST_UUID} --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | xq '.plist.dict.dict.key | length')\" != '7' ]; do \
-    sleep 5; \
-done;"
+# Wait until the response is filled out (https URL appears in output)
+timeout 10m bash -c "
+    while ! xcrun altool --notarization-info ${REQUEST_UUID} --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | grep -q 'https://osxapps-ssl.itunes.apple.com/itunes-assets' ; do
+        sleep 5;
+    done"
 
 # Get logfileurl and make sure it doesn't have any issues
 logfileurl=$(xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | xq .plist.dict.dict.string[1] | xargs)
