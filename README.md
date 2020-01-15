@@ -1,5 +1,7 @@
 # signing_tools: macOS Signing and Notarization Tools
 
+[![CircleCI](https://circleci.com/gh/drud/signing_tools.svg?style=shield)](https://circleci.com/gh/drud/signing_tools) ![project is maintained](https://img.shields.io/maintenance/yes/2020.svg)
+
 This set of scripts currently provides macOS signing and notarization tools for command-line binaries. In the future it will probably include Windows signing tools as well
 
 The macOS signing and notarization tools (macos_sign.sh and macos_notarize.sh) must be run on macOS.
