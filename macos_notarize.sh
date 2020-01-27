@@ -61,7 +61,7 @@ while true; do
     esac
 done
 
-set -o nounset pipefail
+set -o nounset
 
 pushd ${TARGET_BINARY%/*} >/dev/null
 trap "popd >/dev/null" EXIT
@@ -77,8 +77,7 @@ fi
 SUBMISSION_INFO=$(xcrun altool --notarize-app --primary-bundle-id=${PRIMARY_BUNDLE_ID} -u ${APPLE_ID} -p ${APP_SPECIFIC_PASSWORD} --file ${TARGET_BINARY}.zip 2>&1) ;
 
 if [ $? != 0 ]; then
-    echo "Submission failed:"
-    echo $SUBMISSION_INFO
+    printf "Submission failed: $SUBMISSION_INFO \n"
     exit 5
 fi
 
