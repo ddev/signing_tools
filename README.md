@@ -62,6 +62,7 @@ Signing and Notarizing are implemented in [DDEV-Local's Makefile](https://github
 
 ## Resources and Links
 
+* Apple regularly changes their developer agreements. Every time they do, you have to agree to the change before notarizing will work. You have to sign into your apple account and then visit [appstoreconnect.apple.com](https://appstoreconnect.apple.com/agreements/#/) to accept the agreement. (When trying to notarize, you'll get "Error: Unable to notarize app." and "Error: code 1048 (You must first sign the relevant contracts online. (1048))" from altool.)
 * [Basic Step-by-step Signing and Notarization Walkthrough](http://www.zarkonnen.com/signing_notarizing_catalina)
 * [Testing Notarization](https://eclecticlight.co/2019/11/26/how-to-check-quarantine-64-bit-signature-and-notarization-for-almost-anything/) and [Archichect validation tool](https://eclecticlight.co/32-bitcheck-archichect/)
 * [Notarization Answer on Stack Overflow](https://stackoverflow.com/questions/56890749/macos-notarize-in-script/56890758#56890758)
