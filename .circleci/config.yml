@@ -22,10 +22,13 @@ workflows:
   build:
     jobs:
       - build
+        context: org-global
+
 
   nightly_build:
     jobs:
       - build
+        context: org-global
     triggers:
       - schedule:
           cron: "0 3 * * *"
@@ -38,6 +41,7 @@ workflows:
   tag_build:
     jobs:
       - build:
+        context: org-global
           filters:
             tags:
               only:
