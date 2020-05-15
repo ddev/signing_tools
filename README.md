@@ -73,3 +73,11 @@ Signing and Notarizing are implemented in [DDEV-Local's Makefile](https://github
 * [Signing without the popup password](https://stackoverflow.com/a/40039594/215713) (for CI, same SO question)
 * [Apple's Code Signing docs](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html)
 * [Common Code Signing Errors](https://medium.com/@SharpFive/common-code-signing-errors-codesign-failed-with-exit-code-1-1ffa5f4785c9)
+
+## Developer and Contribution information
+
+* If you're making changes, use `make test` to test them. You'll need these environment variables set
+    * APPLE_ID (the apple username/email related to the APP_SPECIFIC_PASSWORD)
+    * APP_SPECIFIC_PASSWORD (Apple app specific password)
+    * SIGNING_TOOLS_SIGNING_PASSWORD (signing password for the provided certificate).
+* For now, forked PRs will not run tests in this repo, because they could expose the APP_SPECIFIC_PASSWORD. In the future, we can use a technique [like this](https://discuss.circleci.com/t/create-separate-steps-jobs-for-pr-forks-versus-branches/13419/4) to separate forked PRs from direct PRs, and add a hold step in the forked-PR path. See the [hold technique](https://circleci.com/docs/2.0/contexts/#approving-jobs-that-use-restricted-contexts) in CircleCI docs.

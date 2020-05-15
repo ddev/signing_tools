@@ -1,4 +1,24 @@
-version: 2
+version: 2.1
+
+workflows:
+  build_and_test:
+    jobs:
+      - build:
+          context: signing_tools
+
+  nightly_build:
+    triggers:
+      - schedule:
+          cron: "0 3 * * *"
+          filters:
+            branches:
+              only:
+              - master
+              - "pull/[0-9]+"
+    jobs:
+      - build:
+          context: signing_tools
+
 jobs:
   build:
     macos:
@@ -17,30 +37,4 @@ jobs:
         command: make test
         no_output_timeout: 30m
 
-workflows:
-  version: 2
-  build:
-    jobs:
-      - build
 
-  nightly_build:
-    jobs:
-      - build
-    triggers:
-      - schedule:
-          cron: "0 3 * * *"
-          filters:
-            branches:
-              only:
-                - master
-                - "pull/[0-9]+"
-
-  tag_build:
-    jobs:
-      - build:
-          filters:
-            tags:
-              only:
-                - "/.*/"
-            branches:
-              ignore: /.*/
