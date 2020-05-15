@@ -3,12 +3,8 @@ version: 2.1
 workflows:
   build_and_test:
     jobs:
-      - hold:
-          type: approval
       - build:
-          requires:
-            - hold
-          context: org-global
+          context: signing_tools
 
   nightly_build:
     triggers:
@@ -21,7 +17,7 @@ workflows:
               - "pull/[0-9]+"
     jobs:
       - build:
-          context: org-global
+          context: signing_tools
 
 jobs:
   build:
