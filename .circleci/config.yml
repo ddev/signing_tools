@@ -1,4 +1,28 @@
 version: 2.1
+
+workflows:
+  build_and_test:
+    jobs:
+      - hold:
+          type: approval
+      - build:
+          requires:
+            - hold
+          context: org-global
+
+  nightly_build:
+    triggers:
+      - schedule:
+          cron: "0 3 * * *"
+          filters:
+            branches:
+              only:
+              - master
+              - "pull/[0-9]+"
+    jobs:
+      - build:
+          context: org-global
+
 jobs:
   build:
     macos:
@@ -17,32 +41,4 @@ jobs:
         command: make test
         no_output_timeout: 30m
 
-workflows:
-  build:
-    - hold:
-        type: approval
-    - build:
-        requires:
-          -hold
-        context: org-global
 
-  nightly_build:
-    triggers:
-      - schedule:
-          cron: "0 3 * * *"
-          filters:
-            branches:
-              only:
-              - master
-              - "pull/[0-9]+"
-    - build:
-        context: org-global
-  tag_build:
-    - build:
-        context: org-global
-        filters:
-          tags:
-            only:
-              - "/.*/"
-          branches:
-            ignore: /.*/
