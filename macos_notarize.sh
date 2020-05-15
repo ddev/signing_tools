@@ -104,9 +104,10 @@ timeout 10m bash -c "
 # Get logfileurl and make sure it doesn't have any issues
 logfileurl=$(xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | xq .plist.dict.dict.string[1] | xargs)
 echo "Notarization LogFileURL=$logfileurl for REQUEST_UUID=$REQUEST_UUID ";
-issues=$(curl -sSL $logfileurl | jq -r .issues)
-set -x
+log=$(curl -sSL $logfileurl)
+issues=$(echo ${log} | jq -r .issues )
 if [ "$issues" != "null" ]; then
-    printf "There are issues with the notarization, see  $logfileurl\n$issues"
+    printf "There are issues with the notarization (${issues}), see $logfileurl\n"
+    printf "=== Log output === \n${log}\n"
     exit 7;
 fi;
