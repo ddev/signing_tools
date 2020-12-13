@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -o errexit
+set -eu -o pipefail
 
 OS=$(uname -s)
 if [ ${OS} = "Darwin" ]; then PATH="/usr/local/opt/gnu-getopt/bin:$PATH"; fi
@@ -62,9 +62,6 @@ while true; do
 done
 
 set -o nounset
-
-pushd ${TARGET_BINARY%/*} >/dev/null
-trap "popd >/dev/null" EXIT
 
 if ! codesign -v ${TARGET_BINARY} ; then
     echo "${TARGET_BINARY} is not signed"
