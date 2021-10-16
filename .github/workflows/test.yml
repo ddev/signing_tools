@@ -1,0 +1,29 @@
+name: Test
+on:
+  pull_request:
+  push:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    defaults:
+      run:
+        shell: bash
+
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+      - run: |
+        brew install bats-core coreutils golang gnu-getopt jq
+        pip3 install yq
+      - name: Test signing/notarizing
+        env:
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          SIGNING_TOOLS_SIGNING_PASSWORD: ${{ secrets.SIGNING_TOOLS_SIGNING_PASSWORD }}
+        run: |
+          make test
