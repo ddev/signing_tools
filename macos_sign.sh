@@ -77,6 +77,8 @@ default_keychain=$(security default-keychain | xargs)
 security list-keychains -s buildagent && security default-keychain -s buildagent
 security import ${CERT_FILE} -k buildagent -P "${SIGNING_PASSWORD}" -T /usr/bin/codesign >/dev/null
 security set-key-partition-list -S apple-tool:,apple: -s -k "${SIGNING_PASSWORD}" buildagent >/dev/null
+# In case target is already signed, remove existing sig as it causes failure
+codesign --remove-signature ${TARGET_BINARY} || true
 codesign --keychain buildagent -s "${CERT_NAME}" --timestamp --options runtime ${TARGET_BINARY}
 codesign -v ${TARGET_BINARY}
 if [ ! -z ${VERBOSE:-} ]; then
