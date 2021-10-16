@@ -9,8 +9,8 @@
 CERTFILE=tests/testdata/certs/macos_signing_tool_test_certfile.p12
 CERTNAME="Developer ID Application: Localdev Foundation (9HQ298V2BW)"
 TARGET_BINARY=/tmp/macos_notarize_dummy
-APPLE_ID=randy@randyfay.com
-APPLE_PROVIDER="Localdev Foundation"
+APPLE_ID=notarizer@localdev.foundation
+TEAM_ID="9HQ298V2BW"
 
 function setup {
     rm -f ${TARGET_BINARY}
