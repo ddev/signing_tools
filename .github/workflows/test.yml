@@ -18,8 +18,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
       - run: |
-        brew install bats-core coreutils golang gnu-getopt jq
-        pip3 install yq
+          brew install bats-core coreutils golang gnu-getopt jq
+          pip3 install yq
       - name: Test signing/notarizing
         env:
           APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
