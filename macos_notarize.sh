@@ -20,7 +20,7 @@ if ! command -v xq >/dev/null ; then
 fi
 
 OPTS=-h
-LONGOPTS=app-specific-password:,apple-id:,primary-bundle-id:,target-binary:,help
+LONGOPTS=app-specific-password:,apple-id:,team-id:,primary-bundle-id:,target-binary:,help
 
 ! PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@" )
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
@@ -43,6 +43,10 @@ while true; do
         APPLE_ID=$2
         shift 2
         ;;
+    --team-id)
+        TEAM_ID=$2
+        shift 2
+        ;;
     --primary-bundle-id)
         PRIMARY_BUNDLE_ID=$2
         shift 2
@@ -52,8 +56,8 @@ while true; do
         shift 2
         ;;
     -h|--help)
-        echo "Usage: $0 --app-specific-password=<apple_app_specific_password> --apple-id=<apple_id_email> --primary-bundle-id=<java-style-bundle-id> --target-binary=<TARGET_BINARY_FULLPATH>"
-        echo "Example: $0 --app-specific-password=\$DDEV_MACOS_APP_PASSWORD --apple-id=accounts@drud.com --primary-bundle-id=com.ddev.ddev --target-binary=.gotmp/bin/darwin_amd64/ddev"
+        echo "Usage: $0 --app-specific-password=<apple_app_specific_password> --apple-id=<apple_id_email> --team-id=<team_id> --primary-bundle-id=<java-style-bundle-id> --target-binary=<TARGET_BINARY_FULLPATH>"
+        echo "Example: $0 --app-specific-password=\$DDEV_MACOS_APP_PASSWORD --apple-id=accounts@localdev.foundation --team-id=9HQ298V2BW --primary-bundle-id=com.ddev.ddev --target-binary=.gotmp/bin/darwin_amd64/ddev"
         exit 0
         ;;
     --)
@@ -71,7 +75,13 @@ fi
 /usr/bin/ditto -c -k --keepParent ${TARGET_BINARY} ${TARGET_BINARY}.zip ;
 
 # Submit the zipball and get REQUEST_UUID
-SUBMISSION_INFO=$(xcrun altool --notarize-app --primary-bundle-id=${PRIMARY_BUNDLE_ID} -u ${APPLE_ID} -p ${APP_SPECIFIC_PASSWORD} --file ${TARGET_BINARY}.zip 2>&1) ;
+xcruncmd="xcrun altool --notarize-app --primary-bundle-id=${PRIMARY_BUNDLE_ID} -u ${APPLE_ID} -p ${APP_SPECIFIC_PASSWORD} --file ${TARGET_BINARY}.zip"
+if [ "${TEAM_ID:-}" != "" ]; then
+  xcruncmd="${xcruncmd} --team-id $TEAM_ID"
+fi
+
+SUBMISSION_INFO=$(${xcruncmd} 2>&1) ;
+
 
 if [ $? != 0 ]; then
     printf "Submission failed: $SUBMISSION_INFO \n"

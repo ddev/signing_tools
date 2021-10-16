@@ -7,9 +7,10 @@
 # APP_SPECIFIC_PASSWORD must be set by test runner
 
 CERTFILE=tests/testdata/certs/macos_signing_tool_test_certfile.p12
-CERTNAME="Developer ID Application: DRUD Technology, LLC (3BAN66AG5M)"
+CERTNAME="Developer ID Application: Localdev Foundation (9HQ298V2BW)"
 TARGET_BINARY=/tmp/macos_notarize_dummy
-APPLE_ID=accounts@drud.com
+APPLE_ID=notarizer@localdev.foundation
+TEAM_ID="9HQ298V2BW"
 
 function setup {
     rm -f ${TARGET_BINARY}
@@ -18,7 +19,7 @@ function setup {
 }
 
 @test "Notarize a signed dummy binary" {
-    ./macos_notarize.sh  --app-specific-password=${APP_SPECIFIC_PASSWORD} --apple-id=${APPLE_ID} --primary-bundle-id=com.ddev.test-signing-tools --target-binary=${TARGET_BINARY}
+    ./macos_notarize.sh  --app-specific-password=${APP_SPECIFIC_PASSWORD} --apple-id=${APPLE_ID} --team-id=${TEAM_ID} --primary-bundle-id=com.ddev.test-signing-tools --target-binary=${TARGET_BINARY}
 }
 
 
