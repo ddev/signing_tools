@@ -56,7 +56,7 @@ while true; do
         shift 2
         ;;
     -h|--help)
-        echo "Usage: $0 --app-specific-password=<apple_app_specific_password> --apple-id=<apple_id_email> --team-id='<team_id>' --primary-bundle-id=<java-style-bundle-id> --target-binary=<TARGET_BINARY_FULLPATH>"
+        echo "Usage: $0 --app-specific-password=<apple_app_specific_password> --apple-id=<apple_id_email> --team-id=<team_id> --primary-bundle-id=<java-style-bundle-id> --target-binary=<TARGET_BINARY_FULLPATH>"
         echo "Example: $0 --app-specific-password=\$DDEV_MACOS_APP_PASSWORD --apple-id=accounts@localdev.foundation --team-id=9HQ298V2BW --primary-bundle-id=com.ddev.ddev --target-binary=.gotmp/bin/darwin_amd64/ddev"
         exit 0
         ;;
