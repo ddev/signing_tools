@@ -2,39 +2,54 @@
 
 [![CircleCI](https://circleci.com/gh/drud/signing_tools.svg?style=shield)](https://circleci.com/gh/drud/signing_tools) ![project is maintained](https://img.shields.io/maintenance/yes/2021.svg)
 
-This set of scripts currently provides macOS signing and notarization tools for command-line binaries. In the future it will probably include Windows signing tools as well
+This set of scripts currently provides macOS signing and notarization tools for command-line binaries. 
 
 The macOS signing and notarization tools (macos_sign.sh and macos_notarize.sh) must be run on macOS.
 
 Examples:
 
-`./macos_sign.sh --signing-password="${SIGNING_TOOLS_SIGNING_PASSWORD}" --cert-file=${CERTFILE} --cert-name="${CERTNAME}" --target-binary="${TARGET_BINARY}"`
+`./macos_sign.sh --signing-password="${SIGNING_TOOLS_SIGNING_PASSWORD}" --cert-file=${CERTFILE} --cert-name="${CERTNAME}"  --target-binary="${TARGET_BINARY}"`
 
-`./macos_notarize.sh  --app-specific-password=${APP_SPECIFIC_PASSWORD} --apple-id=${APPLE_ID} --primary-bundle-id=com.ddev.test-signing-tools --target-binary=${TARGET_BINARY}`
+`./macos_notarize.sh  --app-specific-password=${APP_SPECIFIC_PASSWORD} --apple-id=${APPLE_ID} --primary-bundle-id=com.ddev.test-signing-tools --target-binary=${TARGET_BINARY} [ --team-id=<short-id> ]`
 
-The rest of this file just explains the methods and resources for signing.
+The rest of this file explains the methods and resources for signing.
 
 ## macOS Command-line Binary Signing and Notarization
 
-[DDEV-Local](https://github.com/drud/ddev) has a number of issues and PRs related to macOS signing and notarization ([signing PR](https://github.com/drud/ddev/pull/1727), [signing issue](https://github.com/drud/ddev/issues/1626), [notarization PR](https://github.com/drud/ddev/pull/2015)), but because it's complex and somewhat poorly documented topic, this toolset was built to capture the techniques (and to provide a central place to capture the documentation).
+[DDEV](https://github.com/drud/ddev) and other tools use this to do macOS signing and notarization.
 
 ### Overview
 
-Apple's ongoing initiatives at controlling what runs on their platforms took a new turn with macOS Catalina (10.15), with required app and command-line binary signing. They had threatened required notarization at the release of Catalina in November, but [delayed that to 3 Feb 2020](https://developer.apple.com/news/?id=12232019a&irgwc=1&aosid=p239&cid=aos-us-aff-ir&irchannel=13631&irpid=27795&clickid=xCbU172KJxyORV9wUx0Mo34BUknR3xW91R0sUY0&ircid=7613).
+Apple's ongoing initiatives at controlling what runs on their platforms took a new turn with macOS Catalina (10.15), with required app and command-line binary signing. 
 
 Notarization requires
 
+* An Apple Developer Program organization membership from developer.apple.com
+* Obtaining a signing cert from Apple.
 * Signing the binary or app with a Developer ID Certificate (not just a distribution cert)
 * Notarization (uploading the binary to Apple for approval)
 * Validating code signing
 * Validating notarization
+* An app-specific password created on your Apple account. 
+
+### Creating and exporting the signing certificate
+
+* Signing requires the one-time task of obtaining a doing a certificate request (and creating associated private key) and downloading the certificate. See [docs](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html).
+  * Open `Keychain Access` and go to `Certificate Assistant -> Request a Certificate from a Certificate Authority`
+  * Provide the `User Email Address` and a `Common Name` identifier and save to disk.
+  * Sign in with organization owner credentials at [developer.apple.com](https://developer.apple.com)
+  * At "Certificates, Identiifiers & Profiles" click the `+` to create a new certificate.
+  * Choose "Developer ID Application"
+  * Upload the CSR you created.
+  * Download the created certificate (it's a `.cer file).
+  * Open the downloaded cert in Keychain Access
+  * Export the new cert with a password and place it to be used in your CI process.
 
 ### Signing a command-line binary
 
-* Signing requires the one-time task of obtaining a doing a certificate request (and creating associated private key) and downloading the certificate. See [docs](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html).
-* The *notarization* process requires that binaries be hardened and signed with a *Developer ID certificate*, so, for example, DDEV's  Apple account on developer.apple.com might have a cert called 'Developer ID Application: DRUD Technology, LLC (3BAN66AHXX)'. This cert can be used for signing multiple binaries or applications.
+* The process requires that binaries be hardened and signed with the *Developer ID certificate*, so, for example, DDEV's Apple account on developer.apple.com might have a cert called 'Developer ID Application: Localdev Foundation (9HQ298V2BW)'. This cert can be used for signing multiple binaries or applications.
 * Signing is done with the macOS tool `codesign`. For example,
-`codesign --keychain buildagent -s 'Developer ID Application: DRUD Technology, LLC (3BAN66AG5M)' --timestamp --options runtime .gotmp/bin/darwin_amd64/ddev`. The [macos_sign.sh](macos_sign.sh) tool here just codifies that process.
+`codesign --keychain buildagent -s 'Developer ID Application: Localdev Foundation (9HQ298V2BW)' --timestamp --options runtime .gotmp/bin/darwin_amd64/ddev`. The [macos_sign.sh](macos_sign.sh) tool here just codifies that process.
 
 #### Validating the signature on the binary
 
