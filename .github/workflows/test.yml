@@ -1,11 +1,11 @@
 name: Test
 on:
   push:
-
+  schedule:
+    - cron: '*/5 * * * *'
 defaults:
   run:
     shell: bash
-
 jobs:
   test:
     defaults:
