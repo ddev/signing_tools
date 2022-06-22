@@ -26,3 +26,4 @@ jobs:
           SIGNING_TOOLS_SIGNING_PASSWORD: ${{ secrets.SIGNING_TOOLS_SIGNING_PASSWORD }}
         run: |
           make test
+      - uses: gautamkrishnar/keepalive-workflow@v1
