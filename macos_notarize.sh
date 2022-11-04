@@ -15,7 +15,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 if ! command -v xq >/dev/null ; then
-    echo "xq is required for this script, please install yq to get it: 'pip3 install yq'"
+    echo "xq is required for this script, please install it: 'brew install xq'"
     exit 2
 fi
 

@@ -30,8 +30,7 @@ jobs:
         # jq is required, but it's already set up in default CircleCI homebrew
         command: |
             export HOMEBREW_NO_AUTO_UPDATE=1
-            brew install bats-core golang gnu-getopt coreutils
-            pip3 install -q yq
+            brew install bats-core golang gnu-getopt coreutils xq yq
         name: macOS build machine setup
     - run:
         command: make test

@@ -20,8 +20,7 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@master
       - uses: actions/setup-go@v2
       - run: |
-          brew install bats-core coreutils gnu-getopt jq
-          pip3 install yq
+          brew install bats-core coreutils gnu-getopt jq xq yq
       - name: Test signing/notarizing
         env:
           APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}

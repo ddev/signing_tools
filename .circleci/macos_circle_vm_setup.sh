@@ -3,6 +3,5 @@
 set -o errexit
 set -x
 
-brew install  jq
-pip3 install yq
+brew install  jq xq yq
 
