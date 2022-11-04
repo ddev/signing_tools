@@ -15,6 +15,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
       - uses: actions/setup-go@v2
       - run: |
           brew install bats-core coreutils gnu-getopt jq
