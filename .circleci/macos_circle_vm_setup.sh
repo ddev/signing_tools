@@ -3,5 +3,5 @@
 set -o errexit
 set -x
 
-brew install  jq xq yq
+brew install  jq
 

@@ -14,8 +14,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-if ! command -v xq >/dev/null ; then
-    echo "xq is required for this script, please install it: 'brew install xq'"
+if ! command -v jq >/dev/null ; then
+    echo "jq is required for this script, please install jq to get it: 'brew install jq'"
     exit 2
 fi
 
@@ -109,7 +109,7 @@ timeout 10m bash -c "
     done"
 
 # Get logfileurl and make sure it doesn't have any issues
-logfileurl=$(xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | xq .plist.dict.dict.string[1] | xargs)
+logfileurl=$(xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format json | jq -r '.["notarization-info"].LogFileURL')
 echo "Notarization LogFileURL=$logfileurl for REQUEST_UUID=$REQUEST_UUID ";
 log=$(curl -sSL $logfileurl)
 issues=$(echo ${log} | jq -r .issues )
