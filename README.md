@@ -1,6 +1,6 @@
 # signing_tools: macOS Signing and Notarization Tools
 
-[![CircleCI](https://circleci.com/gh/drud/signing_tools.svg?style=shield)](https://circleci.com/gh/drud/signing_tools) ![project is maintained](https://img.shields.io/maintenance/yes/2022.svg)
+![project is maintained](https://img.shields.io/maintenance/yes/2023.svg)
 
 This set of scripts currently provides macOS signing and notarization tools for command-line binaries. 
 
@@ -95,4 +95,4 @@ Signing and Notarizing are implemented in [DDEV-Local's Makefile](https://github
     * APPLE_ID (the apple username/email related to the APP_SPECIFIC_PASSWORD)
     * APP_SPECIFIC_PASSWORD (Apple app specific password)
     * SIGNING_TOOLS_SIGNING_PASSWORD (signing password for the provided certificate).
-* For now, forked PRs will not run tests in this repo, because they could expose the APP_SPECIFIC_PASSWORD. In the future, we can use a technique [like this](https://discuss.circleci.com/t/create-separate-steps-jobs-for-pr-forks-versus-branches/13419/4) to separate forked PRs from direct PRs, and add a hold step in the forked-PR path. See the [hold technique](https://circleci.com/docs/2.0/contexts/#approving-jobs-that-use-restricted-contexts) in CircleCI docs.
+* Forked PRs will not run tests in this repo, because they could expose the APP_SPECIFIC_PASSWORD. 
