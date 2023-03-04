@@ -16,7 +16,7 @@ The rest of this file explains the methods and resources for signing.
 
 ## macOS Command-line Binary Signing and Notarization
 
-[DDEV](https://github.com/drud/ddev) and other tools use this to do macOS signing and notarization.
+[DDEV](https://github.com/ddev/ddev) and other tools use this to do macOS signing and notarization.
 
 ### Overview
 
@@ -73,7 +73,7 @@ The best technique I've found for validating succesful notarization was [archich
 
 ### CI-based Signing and Notarization
 
-Signing and Notarizing are implemented in [DDEV-Local's Makefile](https://github.com/drud/ddev/blob/9f43569444c9c28fbfb3bab77f35aa49a4bd6a09/Makefile#L130-L141) and `make darwin_signed` there does the whole process using the tools from this repo.
+Signing and Notarizing are implemented in [DDEV-Local's Makefile](https://github.com/ddev/ddev/blob/9f43569444c9c28fbfb3bab77f35aa49a4bd6a09/Makefile#L130-L141) and `make darwin_signed` there does the whole process using the tools from this repo.
 
 ## Resources and Links
 
