@@ -30,7 +30,9 @@ Notarization requires
 * Notarization (uploading the binary to Apple for approval)
 * Validating code signing
 * Validating notarization
-* An app-specific password created on your Apple account. 
+* An app-specific password created on your Apple account.
+* You may need a new "Developer Relations Intermediate Certificate". From https://developer.apple.com/forums/thread/662300 :
+  > Just download the certificate from here and install it. If it doesn't works have a look on https://developer.apple.com/support/expiration/
 
 ### Creating and exporting the signing certificate
 
