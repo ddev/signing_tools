@@ -74,11 +74,8 @@ fi
 
 /usr/bin/ditto -c -k --keepParent ${TARGET_BINARY} ${TARGET_BINARY}.zip ;
 
-# Submit the zipball and get REQUEST_UUID
-xcruncmd="xcrun altool --notarize-app --primary-bundle-id=${PRIMARY_BUNDLE_ID} -u ${APPLE_ID} -p ${APP_SPECIFIC_PASSWORD} --file ${TARGET_BINARY}.zip"
-if [ "${TEAM_ID:-}" != "" ]; then
-  xcruncmd="${xcruncmd} --team-id $TEAM_ID"
-fi
+# Submit the zipball and wait for response
+xcruncmd="xcrun notarytool submit --apple-id ${APPLE_ID} --team-id ${TEAM_ID}  --password ${APP_SPECIFIC_PASSWORD} --wait -v ${TARGET_BINARY}.zip"
 
 SUBMISSION_INFO=$(${xcruncmd} 2>&1) ;
 
@@ -88,33 +85,14 @@ if [ $? != 0 ]; then
     exit 5
 fi
 
-REQUEST_UUID=$(echo ${SUBMISSION_INFO} | awk -F ' = ' '/RequestUUID/ {print $2}')
-if [ -z "${REQUEST_UUID}" ]; then
-    echo "Errors trying to upload ${TARGET_BINARY}.zip: ${SUBMISSION_INFO}"
-    exit 6
-fi
-
-# Wait for "Package Approved"
-timeout 10m bash -c "
-    while ! xcrun altool --notarization-info ${REQUEST_UUID} --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | grep -q 'Package Approved' ; do
-        sleep 60;
-    done"
-
-echo "Package Approved: REQUEST_UUID=$REQUEST_UUID can be accessed with this query: xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --output-format xml --password app_specific_password"
-
-# Wait until the response is filled out (https URL appears in output)
-timeout 10m bash -c "
-    while ! xcrun altool --notarization-info ${REQUEST_UUID} --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format xml | grep -q 'https://osxapps-ssl.itunes.apple.com/itunes-assets' ; do
-        sleep 5;
-    done"
 
 # Get logfileurl and make sure it doesn't have any issues
-logfileurl=$(xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format json | jq -r '.["notarization-info"].LogFileURL')
-echo "Notarization LogFileURL=$logfileurl for REQUEST_UUID=$REQUEST_UUID ";
-log=$(curl -sSL $logfileurl)
-issues=$(echo ${log} | jq -r .issues )
-if [ "$issues" != "null" ]; then
-    printf "There are issues with the notarization (${issues}), see $logfileurl\n"
-    printf "=== Log output === \n${log}\n"
-    exit 7;
-fi;
+#logfileurl=$(xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format json | jq -r '.["notarization-info"].LogFileURL')
+#echo "Notarization LogFileURL=$logfileurl for REQUEST_UUID=$REQUEST_UUID ";
+#log=$(curl -sSL $logfileurl)
+#issues=$(echo ${log} | jq -r .issues )
+#if [ "$issues" != "null" ]; then
+#    printf "There are issues with the notarization (${issues}), see $logfileurl\n"
+#    printf "=== Log output === \n${log}\n"
+#    exit 7;
+#fi;
