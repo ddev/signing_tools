@@ -26,7 +26,7 @@ Notarization requires
 
 * An Apple Developer Program organization membership from developer.apple.com
 * Obtaining a signing cert from Apple.
-* Signing the binary or app with a Developer ID Certificate (not just a distribution cert)
+* Signing the binary or app with a Developer ID Certificate (not  a distribution cert)
 * Notarization (uploading the binary to Apple for approval)
 * Validating code signing
 * Validating notarization

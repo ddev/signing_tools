@@ -4,7 +4,7 @@
 # `bats tests` or `make test`
 
 CERTFILE=tests/testdata/certs/macos_signing_tool_test_certfile.p12
-CERTNAME="Apple Distribution: Localdev Foundation (9HQ298V2BW)"
+CERTNAME="Developer ID Application: Localdev Foundation (9HQ298V2BW)"
 TARGET_BINARY=/tmp/macos_sign_bats_dummy
 
 # SIGNING_TOOLS_SIGNING_PASSWORD must be set by test runner
