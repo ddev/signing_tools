@@ -65,8 +65,6 @@ while true; do
     esac
 done
 
-set -o nounset
-
 if ! codesign -v ${TARGET_BINARY} ; then
     echo "${TARGET_BINARY} is not signed"
     exit 4
@@ -75,24 +73,20 @@ fi
 /usr/bin/ditto -c -k --keepParent ${TARGET_BINARY} ${TARGET_BINARY}.zip ;
 
 # Submit the zipball and wait for response
-xcruncmd="xcrun notarytool submit --apple-id ${APPLE_ID} --team-id ${TEAM_ID}  --password ${APP_SPECIFIC_PASSWORD} --wait -v ${TARGET_BINARY}.zip"
+xcrun notarytool submit -f json --apple-id ${APPLE_ID} --team-id ${TEAM_ID}  --password ${APP_SPECIFIC_PASSWORD} --wait ${TARGET_BINARY}.zip 2>&1 | tee /tmp/notarization_info.json
 
-SUBMISSION_INFO=$(${xcruncmd} 2>&1) ;
+status=$(jq -r .status </tmp/notarization_info.json)
+id=$(jq -r .id </tmp/notarization_info.json)
+#echo ${SUBMISSION_INFO} | jq -r
 
+echo "status=${status} id=${id}"
 
-if [ $? != 0 ]; then
-    printf "Submission failed: $SUBMISSION_INFO \n"
-    exit 5
-fi
+xcrun notarytool log --apple-id ${APPLE_ID} --team-id ${TEAM_ID}  --password ${APP_SPECIFIC_PASSWORD} ${id} -f json >/tmp/notarization_log.json
 
+issues=$(jq -r .issues </tmp/notarization_log.json)
+if [ "$issues" != "null" ]; then
+    printf "There are issues with the notarization (${issues})\n"
+    printf "=== Log output === \n$(cat /tmp/notarization_log.json)\n"
+    exit 7;
+fi;
 
-# Get logfileurl and make sure it doesn't have any issues
-#logfileurl=$(xcrun altool --notarization-info $REQUEST_UUID --username ${APPLE_ID} --password ${APP_SPECIFIC_PASSWORD} --output-format json | jq -r '.["notarization-info"].LogFileURL')
-#echo "Notarization LogFileURL=$logfileurl for REQUEST_UUID=$REQUEST_UUID ";
-#log=$(curl -sSL $logfileurl)
-#issues=$(echo ${log} | jq -r .issues )
-#if [ "$issues" != "null" ]; then
-#    printf "There are issues with the notarization (${issues}), see $logfileurl\n"
-#    printf "=== Log output === \n${log}\n"
-#    exit 7;
-#fi;
