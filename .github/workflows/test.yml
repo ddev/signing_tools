@@ -4,9 +4,10 @@ on:
   schedule:
     - cron: '0 3 * * *'
   workflow_dispatch:
+    inputs:
       debug_enabled:
-        description: 'Enable debug mode'
         type: boolean
+        description: Debug with tmate
         required: false
         default: false
 defaults:
