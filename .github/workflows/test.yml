@@ -3,6 +3,12 @@ on:
   push:
   schedule:
     - cron: '0 3 * * *'
+  workflow_dispatch:
+      debug_enabled:
+        description: 'Enable debug mode'
+        type: boolean
+        required: false
+        default: false
 defaults:
   run:
     shell: bash
@@ -12,15 +18,23 @@ jobs:
       run:
         shell: bash
 
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '^1.20'
       - run: |
           brew install bats-core coreutils gnu-getopt jq xq yq
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
       - name: Test signing/notarizing
         env:
           APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
