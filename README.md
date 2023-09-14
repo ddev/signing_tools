@@ -45,6 +45,7 @@ Notarization requires
   * Upload the CSR you created.
   * Download the created certificate (it's a `.cer file).
   * Open the downloaded cert in Keychain Access
+  * In "My Certificates" export the cert at a .p12 file (it absolutely must be a .p12 file)
   * Export the new cert with a password and place it to be used in your CI process.
 
 ### Signing a command-line binary
