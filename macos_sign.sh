@@ -63,7 +63,7 @@ done
 set -o nounset pipefail
 
 function cleanup {
-    if [ ! -z "${default_keychain}" ]; then
+    if [ ! -z "${default_keychain:-}" ]; then
         security default-keychain -s "$default_keychain" && security list-keychains -s "$default_keychain"
     fi
     security delete-keychain buildagent || true
