@@ -3,6 +3,7 @@ on:
   push:
   schedule:
     - cron: '0 3 * * *'
+
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -10,6 +11,10 @@ on:
         description: Debug with tmate
         required: false
         default: false
+
+permissions:
+  actions: write
+
 defaults:
   run:
     shell: bash
@@ -43,4 +48,4 @@ jobs:
       - name: Test signing/notarizing
         run: |
           make test
-      - uses: gautamkrishnar/keepalive-workflow@v1
+      - uses: gautamkrishnar/keepalive-workflow@v2
