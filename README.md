@@ -1,6 +1,6 @@
 # signing_tools: macOS Signing and Notarization Tools
 
-![project is maintained](https://img.shields.io/maintenance/yes/2023.svg)
+![project is maintained](https://img.shields.io/maintenance/yes/2025.svg)
 
 This set of scripts currently provides macOS signing and notarization tools for command-line binaries. 
 
