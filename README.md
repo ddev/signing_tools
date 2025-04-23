@@ -1,10 +1,10 @@
+[![last commit](https://img.shields.io/github/last-commit/ddev/signing_tools)](https://github.com/ddev/signing_tools/commits)
+
 # signing_tools: macOS Signing and Notarization Tools
 
-[![last commit](https://img.shields.io/github/last-commit/ddev/github-action-add-on-test)](https://github.com/ddev/github-action-add-on-test/commits)
+This set of scripts currently provides macOS signing and notarization tools for command-line binaries.
 
-This set of scripts currently provides macOS signing and notarization tools for command-line binaries. 
-
-The macOS signing and notarization tools (macos_sign.sh and macos_notarize.sh) must be run on macOS.
+The macOS signing and notarization tools (`macos_sign.sh` and `macos_notarize.sh`) must be run on macOS.
 
 Examples:
 
@@ -20,7 +20,7 @@ The rest of this file explains the methods and resources for signing.
 
 ### Overview
 
-Apple's ongoing initiatives at controlling what runs on their platforms took a new turn with macOS Catalina (10.15), with required app and command-line binary signing. 
+Apple's ongoing initiatives at controlling what runs on their platforms took a new turn with macOS Catalina (10.15), with required app and command-line binary signing.
 
 Notarization requires
 
@@ -76,7 +76,7 @@ The best technique I've found for validating succesful notarization was [archich
 
 ### CI-based Signing and Notarization
 
-Signing and Notarizing are implemented in [DDEV-Local's Makefile](https://github.com/ddev/ddev/blob/9f43569444c9c28fbfb3bab77f35aa49a4bd6a09/Makefile#L130-L141) and `make darwin_signed` there does the whole process using the tools from this repo.
+Signing and Notarizing are implemented in [DDEV's Makefile](https://github.com/ddev/ddev/blob/9f43569444c9c28fbfb3bab77f35aa49a4bd6a09/Makefile#L130-L141) and `make darwin_signed` there does the whole process using the tools from this repo.
 
 ## Resources and Links
 
@@ -95,7 +95,7 @@ Signing and Notarizing are implemented in [DDEV-Local's Makefile](https://github
 ## Developer and Contribution information
 
 * If you're making changes, use `make test` to test them. You'll need these environment variables set
-    * APPLE_ID (the apple username/email related to the APP_SPECIFIC_PASSWORD)
-    * APP_SPECIFIC_PASSWORD (Apple app specific password)
-    * SIGNING_TOOLS_SIGNING_PASSWORD (signing password for the provided certificate).
-* Forked PRs will not run tests in this repo, because they could expose the APP_SPECIFIC_PASSWORD. 
+    * `APPLE_ID` (the apple username/email related to the `APP_SPECIFIC_PASSWORD`)
+    * `APP_SPECIFIC_PASSWORD` (Apple app specific password)
+    * `SIGNING_TOOLS_SIGNING_PASSWORD` (signing password for the provided certificate).
+* Forked PRs will not run tests in this repo, because they could expose the `APP_SPECIFIC_PASSWORD`.
