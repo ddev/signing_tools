@@ -48,4 +48,4 @@ jobs:
       - name: Test signing/notarizing
         run: |
           make test
-      - uses: gautamkrishnar/keepalive-workflow@v2
+      # - uses: gautamkrishnar/keepalive-workflow@v2
