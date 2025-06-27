@@ -33,12 +33,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@master
-      - uses: actions/setup-go@v4
+        uses: Homebrew/actions/setup-homebrew@main
+      - uses: actions/setup-go@v5
         with:
           go-version: '^1.20'
       - run: |
-          brew install bats-core coreutils gnu-getopt jq xq yq
+          brew tap bats-core/bats-core
+          brew install bats-core gnu-getopt jq xq yq
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         with:
