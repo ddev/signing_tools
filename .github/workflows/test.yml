@@ -42,6 +42,12 @@ jobs:
           APPLE_ID: "${{ secrets.APPLE_ID }}"
           APP_SPECIFIC_PASSWORD: "op://test-secrets/SIGNING_TOOLS_APP_SPECIFIC_PASSWORD/credential"
           SIGNING_TOOLS_SIGNING_PASSWORD: "op://test-secrets/SIGNING_TOOLS_SIGNING_PASSWORD/credential"
+      - name: Debug environment variables
+        run: |
+          echo "APPLE_ID: ${APPLE_ID}"
+          echo "OP_SERVICE_ACCOUNT_TOKEN set: $([ -n "${OP_SERVICE_ACCOUNT_TOKEN}" ] && echo "yes" || echo "no")"
+          echo "APP_SPECIFIC_PASSWORD set: $([ -n "${APP_SPECIFIC_PASSWORD}" ] && echo "yes" || echo "no")"
+          echo "SIGNING_TOOLS_SIGNING_PASSWORD set: $([ -n "${SIGNING_TOOLS_SIGNING_PASSWORD}" ] && echo "yes" || echo "no")"
       - run: |
           brew tap bats-core/bats-core
           brew install bats-core gnu-getopt jq xq yq
