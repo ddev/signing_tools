@@ -1,3 +1,3 @@
 
 test:
-	bats tests
+	bats --verbose-run tests

@@ -48,5 +48,5 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
       - name: Test signing/notarizing
         run: |
-          make test
+          bats --verbose-run tests
       # - uses: gautamkrishnar/keepalive-workflow@v2

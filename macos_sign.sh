@@ -67,6 +67,8 @@ function cleanup {
         security default-keychain -s "$default_keychain" && security list-keychains -s "$default_keychain"
     fi
     security delete-keychain buildagent || true
+    # Clean up temporary PEM files
+    rm -f /tmp/temp_cert_$$.pem /tmp/temp_key_$$.pem
 }
 trap cleanup EXIT
 
@@ -75,7 +77,17 @@ security create-keychain -p "${SIGNING_PASSWORD}" buildagent
 security unlock-keychain -p "${SIGNING_PASSWORD}" buildagent
 default_keychain=$(security default-keychain | xargs)
 security list-keychains -s buildagent && security default-keychain -s buildagent
-security import ${CERT_FILE} -k buildagent -P "${SIGNING_PASSWORD}" -T /usr/bin/codesign >/dev/null
+# Extract certificate and key from P12 to temporary PEM files (workaround for macOS Sequoia P12 import issue)
+# Try without -legacy flag first (for modern P12), fallback to -legacy for old files
+openssl pkcs12 -in "${CERT_FILE}" -clcerts -nokeys -out /tmp/temp_cert_$$.pem -passin "pass:${SIGNING_PASSWORD}" || \
+openssl pkcs12 -in "${CERT_FILE}" -clcerts -nokeys -out /tmp/temp_cert_$$.pem -passin "pass:${SIGNING_PASSWORD}" -legacy
+openssl pkcs12 -in "${CERT_FILE}" -nocerts -nodes -out /tmp/temp_key_$$.pem -passin "pass:${SIGNING_PASSWORD}" || \
+openssl pkcs12 -in "${CERT_FILE}" -nocerts -nodes -out /tmp/temp_key_$$.pem -passin "pass:${SIGNING_PASSWORD}" -legacy
+# Import certificate and key separately
+security import /tmp/temp_cert_$$.pem -k buildagent -T /usr/bin/codesign >/dev/null
+security import /tmp/temp_key_$$.pem -k buildagent -T /usr/bin/codesign >/dev/null
+# Import intermediate certificate for proper chain validation on macOS Sequoia
+security import /tmp/DeveloperIDG2CA.cer -k buildagent >/dev/null 2>&1 || true
 security set-key-partition-list -S apple-tool:,apple: -s -k "${SIGNING_PASSWORD}" buildagent >/dev/null
 # In case target is already signed, remove existing sig as it causes failure
 codesign --remove-signature ${TARGET_BINARY} || true
