@@ -39,7 +39,7 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: "${{ secrets.TESTS_SERVICE_ACCOUNT_TOKEN }}"
-          APPLE_ID: "${{ vars.APPLE_ID }}"
+          APPLE_ID: "${{ secrets.APPLE_ID }}"
           APP_SPECIFIC_PASSWORD: "op://test-secrets/SIGNING_TOOLS_APP_SPECIFIC_PASSWORD/credential"
           SIGNING_TOOLS_SIGNING_PASSWORD: "op://test-secrets/SIGNING_TOOLS_SIGNING_PASSWORD/credential"
       - run: |
