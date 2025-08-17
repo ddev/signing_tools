@@ -50,9 +50,9 @@ Notarization requires
 
 ### Signing a command-line binary
 
-* The process requires that binaries be hardened and signed with the *Developer ID certificate*, so, for example, DDEV's Apple account on developer.apple.com might have a cert called 'Developer ID Application: Localdev Foundation (9HQ298V2BW)'. This cert can be used for signing multiple binaries or applications.
+* The process requires that binaries be hardened and signed with the *Developer ID certificate*, so, for example, DDEV's Apple account on developer.apple.com might have a cert called 'Developer ID Application: DDEV Foundation (9HQ298V2BW)'. This cert can be used for signing multiple binaries or applications.
 * Signing is done with the macOS tool `codesign`. For example,
-`codesign --keychain buildagent -s 'Developer ID Application: Localdev Foundation (9HQ298V2BW)' --timestamp --options runtime .gotmp/bin/darwin_amd64/ddev`. The [macos_sign.sh](macos_sign.sh) tool here just codifies that process.
+`codesign --keychain buildagent -s 'Developer ID Application: DDEV Foundation (9HQ298V2BW)' --timestamp --options runtime .gotmp/bin/darwin_amd64/ddev`. The [macos_sign.sh](macos_sign.sh) tool here just codifies that process.
 
 #### Validating the signature on the binary
 

@@ -7,9 +7,9 @@
 # APP_SPECIFIC_PASSWORD must be set by test runner
 
 CERTFILE=tests/testdata/certs/macos_signing_tool_test_certfile.p12
-CERTNAME="Developer ID Application: Localdev Foundation (9HQ298V2BW)"
+CERTNAME="Developer ID Application: DDEV Foundation (9HQ298V2BW)"
 TARGET_BINARY=/tmp/macos_notarize_dummy
-APPLE_ID=notarizer@localdev.foundation
+APPLE_ID=notarizer@ddev.com
 TEAM_ID="9HQ298V2BW"
 
 function setup {

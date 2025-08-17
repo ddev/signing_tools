@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-The existing macOS code signing setup works on macOS 13 (Ventura) in CI but fails on macOS 15 (Sequoia) locally due to stricter certificate validation requirements. The current Apple Developer ID certificate, while valid, is not recognized by Sequoia's enhanced security model.
+The existing macOS code signing setup works on macOS 13 (Ventura) in CI but fails on macOS 15 (Sequoia) locally due to stricter certificate validation requirements. The current Apple Developer ID certificate (issued to "Localdev Foundation"), while valid, is not recognized by Sequoia's enhanced security model. Additionally, the certificate uses outdated "Localdev Foundation" naming and should be updated to "DDEV Foundation" branding.
 
 ## Success Criteria
 
@@ -20,16 +20,21 @@ The existing macOS code signing setup works on macOS 13 (Ventura) in CI but fail
 
 **Requirements**:
 - Generate new private key using modern cryptographic standards
-- Create Certificate Signing Request (CSR) 
-- Submit CSR to Apple Developer Program
-- Download new Developer ID Application certificate
+- Create Certificate Signing Request (CSR) for "DDEV Foundation Signing Tools" (project-specific certificate)
+- Submit CSR to Apple Developer Program 
+- Download new Developer ID Application certificate with DDEV Foundation Signing Tools branding
 - Export certificate and private key to PKCS#12 (.p12) format
 - Verify certificate chain includes proper intermediate certificates
+- Certificate will be dedicated solely to signing_tools project (no other privileges)
+- Plan for future separate certificate after project success
+- Update all references from "Localdev Foundation" to "DDEV Foundation"
 
 **Deliverables**:
-- New private key file
-- New .p12 certificate file with embedded private key
+- New private key file (`ddev_signing_tools_private_key.pem`)
+- New .p12 certificate file with embedded private key (`ddev_signing_tools.p12`)
 - Updated certificate password/passphrase
+- Certificate scoped specifically to signing_tools project only
+- Documentation noting this is interim certificate; future projects need separate certificates
 - Verification that certificate is recognized by `security find-identity -v -p codesigning`
 
 ### 2. Secure Secret Management with 1Password

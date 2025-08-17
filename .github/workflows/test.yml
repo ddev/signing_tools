@@ -18,10 +18,6 @@ permissions:
 defaults:
   run:
     shell: bash
-env:
-  APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
-  APPLE_ID: ${{ secrets.APPLE_ID }}
-  SIGNING_TOOLS_SIGNING_PASSWORD: ${{ secrets.SIGNING_TOOLS_SIGNING_PASSWORD }}
 jobs:
   test:
     defaults:
@@ -37,6 +33,16 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '^1.20'
+      - name: Load 1Password secrets for signing tools
+        if: ${{ secrets.TESTS_SERVICE_ACCOUNT_TOKEN != '' }}
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: "${{ secrets.TESTS_SERVICE_ACCOUNT_TOKEN }}"
+          APPLE_ID: "${{ vars.APPLE_ID }}"
+          APP_SPECIFIC_PASSWORD: "op://test-secrets/SIGNING_TOOLS_APP_SPECIFIC_PASSWORD/credential"
+          SIGNING_TOOLS_SIGNING_PASSWORD: "op://test-secrets/SIGNING_TOOLS_SIGNING_PASSWORD/credential"
       - run: |
           brew tap bats-core/bats-core
           brew install bats-core gnu-getopt jq xq yq
