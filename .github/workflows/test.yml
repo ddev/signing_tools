@@ -19,7 +19,7 @@ defaults:
   run:
     shell: bash
 env:
-  APPLE_ID: "${{ secrets.APPLE_ID }}"
+  APPLE_ID: "${{ vars.APPLE_ID }}"
 jobs:
   test:
     defaults:
