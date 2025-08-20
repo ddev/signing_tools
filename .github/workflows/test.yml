@@ -19,16 +19,14 @@ defaults:
   run:
     shell: bash
 env:
-  APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
-  APPLE_ID: ${{ secrets.APPLE_ID }}
-  SIGNING_TOOLS_SIGNING_PASSWORD: ${{ secrets.SIGNING_TOOLS_SIGNING_PASSWORD }}
+  APPLE_ID: "${{ vars.APPLE_ID }}"
 jobs:
   test:
     defaults:
       run:
         shell: bash
 
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - name: Set up Homebrew
@@ -37,6 +35,19 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '^1.20'
+      - name: Load 1Password secrets for signing tools
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: "${{ secrets.TESTS_SERVICE_ACCOUNT_TOKEN }}"
+          APP_SPECIFIC_PASSWORD: "op://test-secrets/SIGNING_TOOLS_APP_SPECIFIC_PASSWORD/credential"
+          SIGNING_TOOLS_SIGNING_PASSWORD: "op://test-secrets/SIGNING_TOOLS_SIGNING_PASSWORD/credential"
+      - name: Debug environment variables
+        run: |
+          echo "APPLE_ID: ${APPLE_ID}"
+          echo "APP_SPECIFIC_PASSWORD set: $([ -n "${APP_SPECIFIC_PASSWORD}" ] && echo "yes" || echo "no")"
+          echo "SIGNING_TOOLS_SIGNING_PASSWORD set: $([ -n "${SIGNING_TOOLS_SIGNING_PASSWORD}" ] && echo "yes" || echo "no")"
       - run: |
           brew tap bats-core/bats-core
           brew install bats-core gnu-getopt jq xq yq
@@ -48,5 +59,8 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
       - name: Test signing/notarizing
         run: |
-          bats --verbose-run tests
+          for item in tests/*.bats; do
+            echo "Running ${item}"
+            bats "${item}"
+          done
       # - uses: gautamkrishnar/keepalive-workflow@v2
