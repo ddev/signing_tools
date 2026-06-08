@@ -1,3 +1,4 @@
+[![tests](https://github.com/ddev/signing_tools/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/ddev/signing_tools/actions/workflows/test.yml?query=branch%3Amaster)
 [![last commit](https://img.shields.io/github/last-commit/ddev/signing_tools)](https://github.com/ddev/signing_tools/commits)
 
 # signing_tools: macOS Signing and Notarization Tools

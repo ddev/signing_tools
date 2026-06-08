@@ -12,14 +12,14 @@ TARGET_BINARY=/tmp/macos_notarize_dummy
 # APPLE_ID should come from environment variable
 TEAM_ID="9HQ298V2BW"
 
-function setup {
+setup() {
+    load setup.sh
     rm -f ${TARGET_BINARY}
     go build -o ${TARGET_BINARY} tests/testdata/helloworld.go
     ./macos_sign.sh --signing-password="${SIGNING_TOOLS_SIGNING_PASSWORD}" --cert-file=${CERTFILE} --cert-name="${CERTNAME}" --target-binary="${TARGET_BINARY}"
 }
 
 @test "Notarize a signed dummy binary" {
-    ./macos_notarize.sh  --app-specific-password=${APP_SPECIFIC_PASSWORD} --apple-id=${APPLE_ID} --team-id=${TEAM_ID} --primary-bundle-id=com.ddev.test-signing-tools --target-binary=${TARGET_BINARY}
+    run ./macos_notarize.sh --app-specific-password=${APP_SPECIFIC_PASSWORD} --apple-id=${APPLE_ID} --team-id=${TEAM_ID} --primary-bundle-id=com.ddev.test-signing-tools --target-binary=${TARGET_BINARY}
+    assert_success
 }
-
-
