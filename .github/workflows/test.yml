@@ -57,8 +57,6 @@ jobs:
           echo "APP_SPECIFIC_PASSWORD set: $([ -n "${APP_SPECIFIC_PASSWORD}" ] && echo "yes" || echo "no")"
           echo "SIGNING_TOOLS_SIGNING_PASSWORD set: $([ -n "${SIGNING_TOOLS_SIGNING_PASSWORD}" ] && echo "yes" || echo "no")"
       - name: Install dependencies
-        env:
-          HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
         run: |
           brew install bats-core bats-core/bats-core/bats-assert bats-core/bats-core/bats-file bats-core/bats-core/bats-support gnu-getopt jq xq yq
       - name: Setup tmate session
