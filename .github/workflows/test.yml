@@ -1,6 +1,8 @@
 name: Test
 on:
   push:
+    branches: [ master, main ]
+  pull_request:
   schedule:
     - cron: '0 3 * * *'
 
@@ -11,6 +13,10 @@ on:
         description: Debug with tmate
         required: false
         default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   actions: write
@@ -28,15 +34,16 @@ jobs:
 
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '^1.20'
+          go-version: '>=1.23'
+          check-latest: true
       - name: Load 1Password secrets for signing tools
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@v4
         with:
           export-env: true
         env:
@@ -49,8 +56,7 @@ jobs:
           echo "APP_SPECIFIC_PASSWORD set: $([ -n "${APP_SPECIFIC_PASSWORD}" ] && echo "yes" || echo "no")"
           echo "SIGNING_TOOLS_SIGNING_PASSWORD set: $([ -n "${SIGNING_TOOLS_SIGNING_PASSWORD}" ] && echo "yes" || echo "no")"
       - run: |
-          brew tap bats-core/bats-core
-          brew install bats-core gnu-getopt jq xq yq
+          brew install bats-core bats-core/bats-core/bats-assert bats-core/bats-core/bats-file bats-core/bats-core/bats-support gnu-getopt jq xq yq
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         with:
@@ -63,4 +69,3 @@ jobs:
             echo "Running ${item}"
             bats "${item}"
           done
-      # - uses: gautamkrishnar/keepalive-workflow@v2

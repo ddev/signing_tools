@@ -9,15 +9,20 @@ TARGET_BINARY=/tmp/macos_sign_bats_dummy
 
 # SIGNING_TOOLS_SIGNING_PASSWORD must be set by test runner
 
-function setup {
+setup() {
+    load setup.sh
     rm -f ${TARGET_BINARY}
     go build -o ${TARGET_BINARY} tests/testdata/helloworld.go
 }
 
 @test "Sign a dummy binary" {
-    ./macos_sign.sh --signing-password="${SIGNING_TOOLS_SIGNING_PASSWORD}" --cert-file=${CERTFILE} --cert-name="${CERTNAME}" --target-binary="${TARGET_BINARY}"
-    codesign -vv ${TARGET_BINARY}
-    codesign -vv -d ${TARGET_BINARY} 2>&1 | grep "$CERTNAME"
+    run ./macos_sign.sh --signing-password="${SIGNING_TOOLS_SIGNING_PASSWORD}" --cert-file=${CERTFILE} --cert-name="${CERTNAME}" --target-binary="${TARGET_BINARY}"
+    assert_success
+
+    run codesign -vv ${TARGET_BINARY}
+    assert_success
+
+    run codesign -vv -d "${TARGET_BINARY}"
+    assert_success
+    assert_output --partial "${CERTNAME}"
 }
-
-
