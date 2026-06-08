@@ -42,6 +42,7 @@ jobs:
         with:
           go-version: '>=1.23'
           check-latest: true
+          cache: false
       - name: Load 1Password secrets for signing tools
         uses: 1password/load-secrets-action@v4
         with:
