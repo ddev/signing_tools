@@ -38,9 +38,10 @@ jobs:
     # Fork PRs never receive signing credentials. Upstream PRs may run after a
     # signing-environment reviewer approves the job.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    # Scheduled runs use an unattended, main-only environment. All other
-    # credential-bearing runs remain behind the reviewer-gated environment.
-    environment: ${{ github.event_name == 'schedule' && 'signing-automation' || 'signing' }}
+    # Scheduled runs and pushes to main use the unattended, main-only
+    # environment. Pull requests and manually dispatched runs remain behind
+    # the reviewer-gated environment.
+    environment: ${{ (github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) && 'signing-automation' || 'signing' }}
     runs-on: macos-26
     env:
       APPLE_ID: "${{ vars.APPLE_ID }}"
