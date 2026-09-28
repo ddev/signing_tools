@@ -24,7 +24,7 @@ jobs:
     name: PR-safe validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Check shell syntax
         run: |
           bash -n macos_sign.sh macos_notarize.sh windows_sign.sh test_signing_integration.sh
@@ -47,7 +47,7 @@ jobs:
       CERTNAME: "Developer ID Application: DDEV Foundation (9HQ298V2BW)"
       TEAM_ID: "9HQ298V2BW"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
