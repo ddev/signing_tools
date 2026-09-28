@@ -68,7 +68,7 @@ function cleanup {
     fi
     security delete-keychain buildagent || true
     # Clean up temporary PEM files
-    rm -f /tmp/temp_cert_$$.pem /tmp/temp_key_$$.pem
+    rm -f /tmp/temp_cert_$$.pem /tmp/temp_key_$$.pem "${intermediate_cert:-}"
 }
 trap cleanup EXIT
 
@@ -80,14 +80,19 @@ security list-keychains -s buildagent && security default-keychain -s buildagent
 # Extract certificate and key from P12 to temporary PEM files (workaround for macOS Sequoia P12 import issue)
 # Try without -legacy flag first (for modern P12), fallback to -legacy for old files
 openssl pkcs12 -in "${CERT_FILE}" -clcerts -nokeys -out /tmp/temp_cert_$$.pem -passin "pass:${SIGNING_PASSWORD}" || \
-openssl pkcs12 -in "${CERT_FILE}" -clcerts -nokeys -out /tmp/temp_cert_$$.pem -passin "pass:${SIGNING_PASSWORD}" -legacy
+openssl pkcs12 -legacy -in "${CERT_FILE}" -clcerts -nokeys -out /tmp/temp_cert_$$.pem -passin "pass:${SIGNING_PASSWORD}"
 openssl pkcs12 -in "${CERT_FILE}" -nocerts -nodes -out /tmp/temp_key_$$.pem -passin "pass:${SIGNING_PASSWORD}" || \
-openssl pkcs12 -in "${CERT_FILE}" -nocerts -nodes -out /tmp/temp_key_$$.pem -passin "pass:${SIGNING_PASSWORD}" -legacy
+openssl pkcs12 -legacy -in "${CERT_FILE}" -nocerts -nodes -out /tmp/temp_key_$$.pem -passin "pass:${SIGNING_PASSWORD}"
 # Import certificate and key separately
 security import /tmp/temp_cert_$$.pem -k buildagent -T /usr/bin/codesign >/dev/null
 security import /tmp/temp_key_$$.pem -k buildagent -T /usr/bin/codesign >/dev/null
-# Import intermediate certificate for proper chain validation on macOS Sequoia
-security import /tmp/DeveloperIDG2CA.cer -k buildagent >/dev/null 2>&1 || true
+# Import the current Developer ID intermediate for proper G2 chain validation.
+# Apple distributes this public certificate; use a unique file to avoid sharing
+# mutable state with concurrent signing processes.
+intermediate_cert=$(mktemp "${TMPDIR:-/tmp}/DeveloperIDG2CA.XXXXXXXX")
+curl --fail --silent --show-error --location --retry 3 --output "$intermediate_cert" \
+    https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+security import "$intermediate_cert" -k buildagent >/dev/null
 security set-key-partition-list -S apple-tool:,apple: -s -k "${SIGNING_PASSWORD}" buildagent >/dev/null
 # In case target is already signed, remove existing sig as it causes failure
 codesign --remove-signature ${TARGET_BINARY} || true

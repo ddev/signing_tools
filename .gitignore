@@ -1,0 +1,3 @@
+# Private signing identities must only be retrieved from 1Password at runtime.
+*.p12
+*.pfx

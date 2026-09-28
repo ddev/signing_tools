@@ -1,176 +1,97 @@
-# 1Password Secret Management Setup for Signing Tools
+# 1Password setup for DDEV signing
 
-## Overview
-This document outlines the secure storage and management of signing-related secrets using 1Password for the DDEV Foundation Signing Tools project.
+The shared DDEV Developer ID identity is production signing material. Its `.p12`
+contains a private key and must never be committed to this repository or exposed
+to pull-request workflows.
 
-## 1Password Vault Structure
+## Signing vault and item
 
-### Recommended Vault Name: `test-secrets`
-*Note: Following DDEV's established pattern of using the "test-secrets" vault for all testing/CI secrets*
+Store the identity in the `ddev-signing` vault in a Secure Note named
+`DDEV Developer ID Application`.
 
-### Items to Create:
+Attach `ddev-developer-id-2026.p12` and add these fields:
 
-#### 1. **Apple Developer Credentials (APPLE_ID)**
-- **Item Type**: Login  
-- **Title**: `SIGNING_TOOLS_APPLE_ID`
-- **Username**: `[APPLE_ID from GitHub secrets]`
-- **Notes**: `Apple ID for DDEV Foundation signing tools`
+| Field | Value |
+| --- | --- |
+| `certificate_password` | Password used to export the `.p12` |
+| `certificate_name` | `Developer ID Application: DDEV Foundation (9HQ298V2BW)` |
+| `team_id` | `9HQ298V2BW` |
+| `expires_at` | Certificate expiry in ISO 8601 format |
+| `sha256_fingerprint` | Certificate SHA-256 fingerprint |
+| `purpose` | Shared DDEV releases and signing_tools protected integration test |
+| `rotation_owner` | Maintainer responsible for certificate rotation |
 
-#### 2. **App Specific Password**
-- **Item Type**: Password
-- **Title**: `SIGNING_TOOLS_APP_SPECIFIC_PASSWORD`
-- **Password**: `[APP_SPECIFIC_PASSWORD from GitHub secrets]`
-- **Notes**: `App-specific password for notarization`
+The current identity expires on 2031-09-17. The attachment name and item UUID
+are part of the CI contract and are referenced as:
 
-#### 3. **Certificate Password**
-- **Item Type**: Password
-- **Title**: `SIGNING_TOOLS_SIGNING_PASSWORD`
-- **Password**: `p9rnqSpjLmcf`
-- **Notes**: `Password for macos_signing_tool_test_certfile.p12`
-
-#### 4. **Certificate Files**
-- **Item Type**: Secure Note
-- **Title**: `Signing Tools Certificates`
-- **Attachments**:
-  - `macos_signing_tool_test_certfile.p12` (original)
-  - `ddev_signing_tools.p12` (new DDEV Foundation cert)
-  - `ddev_signing_tools_private_key.pem`
-  - `ddev_signing_tools_cert.pem`
-- **Notes**: 
-  ```
-  Certificate Details:
-  - Original: Developer ID Application: DDEV Foundation (9HQ298V2BW)
-  - New: Developer ID Application: DDEV Foundation (9HQ298V2BW)
-  - Both use password: p9rnqSpjLmcf
-  - Project-specific certificates (signing_tools only)
-  ```
-
-## 1Password Secret References
-
-For GitHub Actions integration, use these reference paths:
-
-```yaml
-env:
-  APPLE_ID: op://test-secrets/SIGNING_TOOLS_APPLE_ID/username
-  APP_SPECIFIC_PASSWORD: op://test-secrets/SIGNING_TOOLS_APP_SPECIFIC_PASSWORD/credential
-  SIGNING_TOOLS_SIGNING_PASSWORD: op://test-secrets/SIGNING_TOOLS_SIGNING_PASSWORD/credential
+```text
+op://ddev-signing/2prggopnzml4kqotzzs3dgcsr4/ddev-developer-id-2026.p12
 ```
 
-## Service Account Setup
+## CI service account
 
-### 1. Create 1Password Service Account
-1. Go to 1Password Business/Team settings
-2. Create new Service Account: `ddev-signing-tools-ci`
-3. Grant **read-only** access to `test-secrets` vault
-4. Save the service account token securely
+Create a dedicated service account called `ddev-signing-tools-ci` with read-only
+access to the `ddev-signing` vault. Store its token in the protected GitHub
+environment named `signing` under the name `OP_SERVICE_ACCOUNT_TOKEN`.
 
-### 2. GitHub Repository Setup
-1. Add GitHub Repository Secret: `TESTS_SERVICE_ACCOUNT_TOKEN`
-2. Value: `[Service Account Token from step 1]`
-3. Add GitHub Repository Secret: `OP_SERVICE_ACCOUNT_TOKEN` 
-4. Value: `[Same Service Account Token from step 1]`
+Keep the token's recovery record in a separate administrator-only infrastructure
+vault, not in `ddev-signing`. Do not share this token with other repositories;
+give each repository its own service account for independent audit and revocation.
 
-*Note: `OP_SERVICE_ACCOUNT_TOKEN` is the fixed name required by 1Password's GitHub Action. We set its value to the same token as `TESTS_SERVICE_ACCOUNT_TOKEN` to follow DDEV's naming convention while satisfying 1Password's requirements.*
+The workflow uses `1password/load-secrets-action@v4` to load
+`certificate_password` and `op read` to write the attachment to a temporary,
+owner-readable file. The file is removed at the end of the job.
 
-## GitHub Actions Integration
+## Local integration test
 
-Update `.github/workflows/test.yml` to use 1Password:
+Maintainers with 1Password access can validate the full signing and notarization
+path locally with:
 
-```yaml
-- name: Load 1Password secrets for signing tools
-  if: ${{ env.TESTS_SERVICE_ACCOUNT_TOKEN != '' }}
-  uses: 1password/load-secrets-action@v2
-  with:
-    export-env: true
-  env:
-    OP_SERVICE_ACCOUNT_TOKEN: "${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}"
-    APPLE_ID: "op://test-secrets/SIGNING_TOOLS_APPLE_ID/username"
-    APP_SPECIFIC_PASSWORD: "op://test-secrets/SIGNING_TOOLS_APP_SPECIFIC_PASSWORD/credential"
-    SIGNING_TOOLS_SIGNING_PASSWORD: "op://test-secrets/SIGNING_TOOLS_SIGNING_PASSWORD/credential"
+```bash
+make signing-integration-test
 ```
 
-## Security Benefits
+This requires an authenticated `op` CLI, Bats, read access to `ddev-signing` and
+`test-secrets`, and `APPLE_ID` set to the same non-secret notarization address
+configured in GitHub Actions. The command retrieves the `.p12` into a private
+temporary directory and deletes it when the test exits. It does not create a
+local, long-lived certificate copy.
 
-### Current State (GitHub Secrets)
-- ❌ Secrets scattered across GitHub repository settings
-- ❌ No audit trail for secret access
-- ❌ Limited access control granularity
-- ❌ No secret rotation tracking
+## Rollout to ddev/ddev
 
-### With 1Password
-- ✅ Centralized secret management
-- ✅ Detailed audit logs and access tracking
-- ✅ Granular access control per vault/item
-- ✅ Secret rotation and version history
-- ✅ Team member access management
-- ✅ Service account with minimal permissions
+`ddev/ddev` currently downloads `macos_sign.sh` from this repository's `master`
+branch and supplies its own certificate file, password, and certificate name.
+Keep the command-line interface of `macos_sign.sh` unchanged until DDEV has
+migrated. In particular, it must continue to accept `--signing-password`,
+`--cert-file`, `--cert-name`, and `--target-binary` for the existing Localdev
+Foundation identity.
 
-## Access Control
+Roll out in this order:
 
-### Team Access
-- **Admin Access**: Project maintainers
-- **Read Access**: Developers who need to run signing locally
-- **CI Access**: Service account (read-only, specific vault)
+1. Merge and manually run this repository's protected signing-integration
+   workflow with the new identity.
+2. Update `ddev/ddev` to retrieve the new `.p12` and its password from
+   1Password, pass the new DDEV Foundation certificate name, and validate a
+   signed/notarized build.
+3. Pin DDEV's downloaded signing-tools revision to the tested commit or a tagged
+   release instead of following `master` directly.
+4. Only then make separately tested behavior changes to the signing scripts.
 
-### Recovery Procedures
-1. **Service Account Token Rotation**:
-   - Generate new service account token in 1Password
-   - Update `OP_SERVICE_ACCOUNT_TOKEN` in GitHub secrets
-   - Revoke old token
+## Notarization credentials
 
-2. **Certificate Password Change**:
-   - Update password in 1Password vault
-   - No GitHub secrets changes needed (pulled automatically)
+Notarization currently uses the existing `test-secrets` service account to load
+`SIGNING_TOOLS_APP_SPECIFIC_PASSWORD`. Move this credential to a dedicated
+least-privilege notarization vault as a follow-up, or replace it with an App
+Store Connect team API key after validating the required role.
 
-3. **Emergency Access**:
-   - Admin users can access vault directly through 1Password
-   - Service account can be temporarily granted broader access if needed
+## Rotation
 
-## Implementation Checklist
-
-### Phase 1: Setup
-- [ ] Access existing 1Password vault: `test-secrets`
-- [ ] Create secret items in test-secrets vault:
-  - [ ] `SIGNING_TOOLS_APPLE_ID` (Login item)
-  - [ ] `SIGNING_TOOLS_APP_SPECIFIC_PASSWORD` (Password item)
-  - [ ] `SIGNING_TOOLS_SIGNING_PASSWORD` (Password item)
-- [ ] Create service account: `ddev-signing-tools-ci`
-- [ ] Set vault permissions for service account
-
-### Phase 2: GitHub Integration
-- [ ] Add `TESTS_SERVICE_ACCOUNT_TOKEN` to GitHub repository secrets
-- [ ] Set `TESTS_SERVICE_ACCOUNT_TOKEN` value to the service account token from Phase 1
-- [ ] Move `APPLE_ID` from GitHub secrets to GitHub environment variables
-- [ ] Set `APPLE_ID` environment variable to `notarizer@ddev.com`
-- [ ] Update `.github/workflows/test.yml` with 1Password action
-- [ ] Test CI workflow with 1Password secrets
-- [ ] Verify all secrets are loaded correctly
-
-### Phase 3: Cleanup (After Merge)
-- [ ] Remove old GitHub repository secrets:
-  - `APPLE_ID` (moved to GitHub environment variable)
-  - `APP_SPECIFIC_PASSWORD` (now loaded from 1Password)
-  - `SIGNING_TOOLS_SIGNING_PASSWORD` (now loaded from 1Password)
-- [ ] Confirm service account uses both token names correctly
-- [ ] Document team access procedures
-- [ ] Schedule periodic secret rotation review
-
-## Future Certificate Management
-
-When creating new certificates for other DDEV projects:
-1. Create separate 1Password vault (e.g., `DDEV Project X Signing`)
-2. Use separate service accounts for each project
-3. Follow same structure and documentation pattern
-4. Maintain project-specific certificate isolation
-
-## Support and Documentation
-
-- **1Password GitHub Action**: https://github.com/1Password/load-secrets-action
-- **Service Account Setup**: https://developer.1password.com/docs/service-accounts/
-- **Secret Reference Format**: https://developer.1password.com/docs/cli/secret-references/
-
----
-
-**Created**: August 17, 2025  
-**Project**: DDEV Foundation Signing Tools  
-**Purpose**: Secure secret management for code signing workflow
+1. Create a new private key and CSR on a maintainer-controlled Mac.
+2. Create a new Developer ID Application certificate using the G2 Sub-CA.
+3. Export it as a password-protected `.p12`, and record its identity and
+   fingerprint in 1Password.
+4. Update the attachment and metadata in the signing item.
+5. Run the protected signing-integration workflow and verify signing and
+   notarization before changing any DDEV release workflow.
+6. Allow superseded test-only certificates to expire unless revocation is needed
+   for a compromise.

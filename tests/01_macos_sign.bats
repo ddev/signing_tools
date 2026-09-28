@@ -3,8 +3,8 @@
 # Run these tests from the repo root directory, for example
 # `bats tests` or `make test`
 
-CERTFILE=tests/testdata/certs/macos_signing_tool_test_certfile.p12
-CERTNAME="Developer ID Application: DDEV Foundation (9HQ298V2BW)"
+CERTFILE="${CERTFILE:?CERTFILE must point to the CI-downloaded signing certificate}"
+CERTNAME="${CERTNAME:?CERTNAME must name the CI signing identity}"
 TARGET_BINARY=/tmp/macos_sign_bats_dummy
 
 # SIGNING_TOOLS_SIGNING_PASSWORD must be set by test runner

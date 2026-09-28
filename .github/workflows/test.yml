@@ -1,38 +1,33 @@
-name: Test
+name: Signing integration
+
 on:
   push:
-    branches: [ master, main ]
-  pull_request:
+    branches: [master, main]
   schedule:
     - cron: '0 3 * * *'
-
   workflow_dispatch:
-    inputs:
-      debug_enabled:
-        type: boolean
-        description: Enable remote debugging session
-        required: false
-        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  actions: write
+  contents: read
 
 defaults:
   run:
     shell: bash
-env:
-  APPLE_ID: "${{ vars.APPLE_ID }}"
-jobs:
-  test:
-    defaults:
-      run:
-        shell: bash
 
+jobs:
+  sign-and-notarize:
+    # This environment must be protected. It contains the service-account token
+    # that can retrieve the shared DDEV Developer ID private key.
+    environment: signing
     runs-on: macos-26
+    env:
+      APPLE_ID: "${{ vars.APPLE_ID }}"
+      CERTNAME: "Developer ID Application: DDEV Foundation (9HQ298V2BW)"
+      TEAM_ID: "9HQ298V2BW"
     steps:
       - uses: actions/checkout@v6
       - name: Set up Homebrew
@@ -43,30 +38,35 @@ jobs:
           go-version: '>=1.23'
           check-latest: true
           cache: false
-      - name: Load 1Password secrets for signing tools
+      - name: Load notarization secrets
         uses: 1password/load-secrets-action@v4
         with:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: "${{ secrets.TESTS_SERVICE_ACCOUNT_TOKEN }}"
           APP_SPECIFIC_PASSWORD: "op://test-secrets/SIGNING_TOOLS_APP_SPECIFIC_PASSWORD/credential"
-          SIGNING_TOOLS_SIGNING_PASSWORD: "op://test-secrets/SIGNING_TOOLS_SIGNING_PASSWORD/credential"
-      - name: Debug environment variables
-        run: |
-          echo "APPLE_ID: ${APPLE_ID}"
-          echo "APP_SPECIFIC_PASSWORD set: $([ -n "${APP_SPECIFIC_PASSWORD}" ] && echo "yes" || echo "no")"
-          echo "SIGNING_TOOLS_SIGNING_PASSWORD set: $([ -n "${SIGNING_TOOLS_SIGNING_PASSWORD}" ] && echo "yes" || echo "no")"
+      - name: Load signing-certificate password
+        uses: 1password/load-secrets-action@v4
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: "${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}"
+          SIGNING_TOOLS_SIGNING_PASSWORD: "op://ddev-signing/2prggopnzml4kqotzzs3dgcsr4/certificate_password"
       - name: Install dependencies
         run: |
           brew install bats-core bats-core/bats-core/bats-assert bats-core/bats-core/bats-file bats-core/bats-core/bats-support gnu-getopt jq xq yq
-      - name: Setup upterm session
-        uses: owenthereal/action-upterm@v1
-        with:
-          limit-access-to-actor: true
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-      - name: Test signing/notarizing
+      - name: Test signing and notarization
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: "${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}"
         run: |
+          set -euo pipefail
+          cert_dir=$(mktemp -d "${TMPDIR:-/tmp}/ddev-signing-cert.XXXXXXXX")
+          cert_file="$cert_dir/ddev-developer-id-2026.p12"
+          trap 'rm -rf "$cert_dir"' EXIT
+          op read --out-file "$cert_file" "op://ddev-signing/2prggopnzml4kqotzzs3dgcsr4/ddev-developer-id-2026.p12"
+          chmod 600 "$cert_file"
+          export CERTFILE="$cert_file"
           for item in tests/*.bats; do
             echo "Running ${item}"
-            bats "${item}"
+            bats "$item"
           done
