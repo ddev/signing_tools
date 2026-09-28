@@ -127,8 +127,11 @@ use the same address configured as the GitHub Actions variable.
 
 ## Developer and Contribution information
 
-* If you're making changes, use `make test` to test them. You'll need these environment variables set
-    * `APPLE_ID` (the apple username/email related to the `APP_SPECIFIC_PASSWORD`)
-    * `APP_SPECIFIC_PASSWORD` (Apple app specific password)
-    * `SIGNING_TOOLS_SIGNING_PASSWORD` (signing password for the provided certificate).
+* If you're making changes, use `make signing-integration-test` to test them (see
+  [Running the signing integration test locally](#running-the-signing-integration-test-locally)
+  above). It requires an authenticated `op` CLI session and access to the
+  `ddev-signing` and `test-secrets` 1Password vaults, since the tests need a
+  real Developer ID certificate (`CERTFILE`/`CERTNAME`/`TEAM_ID`) to sign
+  against. `bats tests` / `make test` will fail with unset-variable errors
+  without these, since there is no checked-in test certificate to fall back to.
 * Forked PRs will not run tests in this repo, because they could expose the `APP_SPECIFIC_PASSWORD`.

@@ -38,6 +38,11 @@ Configure the `signing` environment with required reviewers and prevent
 self-approval. Same-repository pull requests queue the signing job for this
 approval; fork pull requests cannot access signing credentials.
 
+Scheduled signing runs use a separate `signing-automation` environment so they
+can run unattended. Add the same `OP_SERVICE_ACCOUNT_TOKEN` there (or, preferably,
+use a separate read-only service account for scheduled runs). Restrict this
+environment to the `main` branch and do not configure required reviewers.
+
 Keep the token's recovery record in a separate administrator-only infrastructure
 vault, not in `ddev-signing`. Do not share this token with other repositories;
 give each repository its own service account for independent audit and revocation.
