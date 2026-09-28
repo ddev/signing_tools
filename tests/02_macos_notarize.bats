@@ -6,11 +6,11 @@
 # SIGNING_TOOLS_SIGNING_PASSWORD must be set by test runner
 # APP_SPECIFIC_PASSWORD must be set by test runner
 
-CERTFILE=tests/testdata/certs/macos_signing_tool_test_certfile.p12
-CERTNAME="Developer ID Application: DDEV Foundation (9HQ298V2BW)"
+CERTFILE="${CERTFILE:?CERTFILE must point to the CI-downloaded signing certificate}"
+CERTNAME="${CERTNAME:?CERTNAME must name the CI signing identity}"
 TARGET_BINARY=/tmp/macos_notarize_dummy
 # APPLE_ID should come from environment variable
-TEAM_ID="9HQ298V2BW"
+TEAM_ID="${TEAM_ID:?TEAM_ID must identify the signing team}"
 
 setup() {
     load setup.sh
@@ -22,4 +22,7 @@ setup() {
 @test "Notarize a signed dummy binary" {
     run ./macos_notarize.sh --app-specific-password=${APP_SPECIFIC_PASSWORD} --apple-id=${APPLE_ID} --team-id=${TEAM_ID} --primary-bundle-id=com.ddev.test-signing-tools --target-binary=${TARGET_BINARY}
     assert_success
+    # `run` captures output, so print the non-secret Apple submission result in
+    # successful CI logs for audit and troubleshooting.
+    printf '%s\n' "$output"
 }

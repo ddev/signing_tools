@@ -47,13 +47,17 @@ Notarization requires
   * Download the created certificate (it's a `.cer file).
   * Open the downloaded cert in Keychain Access
   * In "My Certificates" export the cert at a .p12 file (it absolutely must be a .p12 file)
-  * Export the new cert with a password and place it to be used in your CI process.
+  * Export the new cert with a password and store it as a 1Password attachment;
+    do not commit the `.p12` or private key to Git.
 
 ### Signing a command-line binary
 
 * The process requires that binaries be hardened and signed with the *Developer ID certificate*, so, for example, DDEV's Apple account on developer.apple.com might have a cert called 'Developer ID Application: DDEV Foundation (9HQ298V2BW)'. This cert can be used for signing multiple binaries or applications.
 * Signing is done with the macOS tool `codesign`. For example,
 `codesign --keychain buildagent -s 'Developer ID Application: DDEV Foundation (9HQ298V2BW)' --timestamp --options runtime .gotmp/bin/darwin_amd64/ddev`. The [macos_sign.sh](macos_sign.sh) tool here just codifies that process.
+* G2-issued identities require the Developer ID G2 intermediate certificate when
+  signing. `macos_sign.sh` downloads Apple's public intermediate into a temporary
+  file and imports it into the temporary signing keychain.
 
 #### Validating the signature on the binary
 
@@ -79,6 +83,34 @@ The best technique I've found for validating succesful notarization was [archich
 
 Signing and Notarizing are implemented in [DDEV's Makefile](https://github.com/ddev/ddev/blob/9f43569444c9c28fbfb3bab77f35aa49a4bd6a09/Makefile#L130-L141) and `make darwin_signed` there does the whole process using the tools from this repo.
 
+This repository's real signing and notarization test runs only in the protected
+GitHub Actions `signing` environment. It retrieves the shared DDEV Developer ID
+identity from 1Password at job runtime and removes the temporary `.p12` before
+the job exits. See [1PASSWORD_SETUP.md](1PASSWORD_SETUP.md) for the required
+vault item and service-account setup.
+
+The job runs automatically for same-repository pull requests, but must be
+approved through the protected `signing` environment before it can access
+credentials. Fork pull requests run only PR-safe validation.
+
+### Running the signing integration test locally
+
+Maintainers with access to the required 1Password vaults can run the real test
+without retaining a local certificate export:
+
+```bash
+brew install bats-core bats-core/bats-core/bats-assert bats-core/bats-core/bats-file bats-core/bats-core/bats-support
+APPLE_ID='the DDEV notarization Apple ID' make signing-integration-test
+```
+
+The command requires an authenticated `op` CLI session and access to
+`ddev-signing` and `test-secrets`. It reads the certificate and credentials only
+for the test process, and removes the temporary certificate afterward. The
+`CERTIFICATE_REF`, `CERTIFICATE_PASSWORD_REF`, and
+`APP_SPECIFIC_PASSWORD_REF` environment variables may override the default
+1Password references when testing a rotated identity. `APPLE_ID` is not secret;
+use the same address configured as the GitHub Actions variable.
+
 ## Resources and Links
 
 * Apple regularly changes their developer agreements. Every time they do, you have to agree to the change before notarizing will work. You have to sign into your apple account and then visit [appstoreconnect.apple.com](https://appstoreconnect.apple.com/agreements/#/) to accept the agreement. (When trying to notarize, you'll get "Error: Unable to notarize app." and "Error: code 1048 (You must first sign the relevant contracts online. (1048))" from altool.)
@@ -95,8 +127,11 @@ Signing and Notarizing are implemented in [DDEV's Makefile](https://github.com/d
 
 ## Developer and Contribution information
 
-* If you're making changes, use `make test` to test them. You'll need these environment variables set
-    * `APPLE_ID` (the apple username/email related to the `APP_SPECIFIC_PASSWORD`)
-    * `APP_SPECIFIC_PASSWORD` (Apple app specific password)
-    * `SIGNING_TOOLS_SIGNING_PASSWORD` (signing password for the provided certificate).
+* If you're making changes, use `make signing-integration-test` to test them (see
+  [Running the signing integration test locally](#running-the-signing-integration-test-locally)
+  above). It requires an authenticated `op` CLI session and access to the
+  `ddev-signing` and `test-secrets` 1Password vaults, since the tests need a
+  real Developer ID certificate (`CERTFILE`/`CERTNAME`/`TEAM_ID`) to sign
+  against. `bats tests` / `make test` will fail with unset-variable errors
+  without these, since there is no checked-in test certificate to fall back to.
 * Forked PRs will not run tests in this repo, because they could expose the `APP_SPECIFIC_PASSWORD`.
