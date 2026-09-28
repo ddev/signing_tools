@@ -10,11 +10,11 @@ binaries. The signing identity is a shared DDEV Developer ID identity stored in
 1Password; never add a certificate, private key, password, token, or other
 credential to Git.
 
-`ddev/ddev` downloads `macos_sign.sh` and `macos_notarize.sh` from this
-repository's `main` branch. Preserve their command-line interfaces unless the
-DDEV migration has been coordinated and tested. In particular, keep support for
-the existing `--signing-password`, `--cert-file`, `--cert-name`, and
-`--target-binary` arguments.
+`ddev/ddev` currently downloads `macos_sign.sh` and `macos_notarize.sh` from
+this repository's `master` branch. Preserve their command-line interfaces until
+the planned migration to `main` has been coordinated and tested. In particular,
+keep support for the existing `--signing-password`, `--cert-file`,
+`--cert-name`, and `--target-binary` arguments.
 
 ## Git workflow
 
@@ -48,7 +48,7 @@ The full signing/notarization integration test accesses 1Password and submits a
 test artifact to Apple. Run it only when needed or requested:
 
 ```bash
-APPLE_ID='notarizer@localdev.foundation' make signing-integration-test
+APPLE_ID='the DDEV notarization Apple ID' make signing-integration-test
 ```
 
 It requires an authenticated `op` CLI and access to the `ddev-signing` and
@@ -59,17 +59,11 @@ Fork pull requests run PR-safe validation only. Same-repository pull requests
 may run signing after approval through the `signing` environment. Scheduled
 runs use the unattended `signing-automation` environment, restricted to `main`.
 
-## Task Master
-
-Task Master configuration is present locally under `.taskmaster/`. Do not run
-`task-master init`; the project is already initialized. Use the existing Task
-Master workflow only when the task calls for it.
-
 ## Working style
 
 - Make small, compatible changes.
 - Keep comments focused on why, rather than repeating code.
 - Do not expose secret values in commands, logs, documentation, commits, or PR
   text.
-- Use the project README and `1PASSWORD_SETUP.md` as the source of truth for
-  signing setup and rotation.
+- Consult the project README and `1PASSWORD_SETUP.md` for signing setup and
+  rotation, and verify their operational details against the current workflow.
