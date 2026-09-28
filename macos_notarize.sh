@@ -71,6 +71,7 @@ if ! codesign -v ${TARGET_BINARY} ; then
 fi
 
 /usr/bin/ditto -c -k --keepParent ${TARGET_BINARY} ${TARGET_BINARY}.zip ;
+echo "Submitting ${TARGET_BINARY}.zip ($(shasum -a 256 "${TARGET_BINARY}.zip" | awk '{print $1}')) for notarization at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Submit the zipball and wait for response
 xcrun notarytool submit -f json --apple-id ${APPLE_ID} --team-id ${TEAM_ID}  --password ${APP_SPECIFIC_PASSWORD} --wait ${TARGET_BINARY}.zip 2>&1 | tee /tmp/notarization_info.json
@@ -79,7 +80,7 @@ status=$(jq -r .status </tmp/notarization_info.json)
 id=$(jq -r .id </tmp/notarization_info.json)
 #echo ${SUBMISSION_INFO} | jq -r
 
-echo "status=${status} id=${id}"
+echo "Notarization completed at $(date -u +%Y-%m-%dT%H:%M:%SZ): status=${status} id=${id}"
 
 xcrun notarytool log --apple-id ${APPLE_ID} --team-id ${TEAM_ID}  --password ${APP_SPECIFIC_PASSWORD} ${id} -f json >/tmp/notarization_log.json
 
@@ -89,4 +90,3 @@ if [ "$issues" != "null" ]; then
     printf "=== Log output === \n$(cat /tmp/notarization_log.json)\n"
     exit 7;
 fi;
-

@@ -89,6 +89,10 @@ identity from 1Password at job runtime and removes the temporary `.p12` before
 the job exits. See [1PASSWORD_SETUP.md](1PASSWORD_SETUP.md) for the required
 vault item and service-account setup.
 
+The job runs automatically for same-repository pull requests, but must be
+approved through the protected `signing` environment before it can access
+credentials. Fork pull requests run only PR-safe validation.
+
 ### Running the signing integration test locally
 
 Maintainers with access to the required 1Password vaults can run the real test

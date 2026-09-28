@@ -22,4 +22,7 @@ setup() {
 @test "Notarize a signed dummy binary" {
     run ./macos_notarize.sh --app-specific-password=${APP_SPECIFIC_PASSWORD} --apple-id=${APPLE_ID} --team-id=${TEAM_ID} --primary-bundle-id=com.ddev.test-signing-tools --target-binary=${TARGET_BINARY}
     assert_success
+    # `run` captures output, so print the non-secret Apple submission result in
+    # successful CI logs for audit and troubleshooting.
+    printf '%s\n' "$output"
 }

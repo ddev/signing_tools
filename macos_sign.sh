@@ -78,11 +78,14 @@ security unlock-keychain -p "${SIGNING_PASSWORD}" buildagent
 default_keychain=$(security default-keychain | xargs)
 security list-keychains -s buildagent && security default-keychain -s buildagent
 # Extract certificate and key from P12 to temporary PEM files (workaround for macOS Sequoia P12 import issue)
-# Try without -legacy flag first (for modern P12), fallback to -legacy for old files
-openssl pkcs12 -in "${CERT_FILE}" -clcerts -nokeys -out /tmp/temp_cert_$$.pem -passin "pass:${SIGNING_PASSWORD}" || \
-openssl pkcs12 -legacy -in "${CERT_FILE}" -clcerts -nokeys -out /tmp/temp_cert_$$.pem -passin "pass:${SIGNING_PASSWORD}"
-openssl pkcs12 -in "${CERT_FILE}" -nocerts -nodes -out /tmp/temp_key_$$.pem -passin "pass:${SIGNING_PASSWORD}" || \
-openssl pkcs12 -legacy -in "${CERT_FILE}" -nocerts -nodes -out /tmp/temp_key_$$.pem -passin "pass:${SIGNING_PASSWORD}"
+# Enable legacy algorithms first when OpenSSL supports them. Keychain exports
+# commonly use RC2 encryption, while older OpenSSL versions lack this flag.
+PKCS12_OPTIONS=()
+if openssl pkcs12 -help 2>&1 | grep -q -- '-legacy'; then
+    PKCS12_OPTIONS=(-legacy)
+fi
+openssl pkcs12 "${PKCS12_OPTIONS[@]}" -in "${CERT_FILE}" -clcerts -nokeys -out /tmp/temp_cert_$$.pem -passin "pass:${SIGNING_PASSWORD}"
+openssl pkcs12 "${PKCS12_OPTIONS[@]}" -in "${CERT_FILE}" -nocerts -nodes -out /tmp/temp_key_$$.pem -passin "pass:${SIGNING_PASSWORD}"
 # Import certificate and key separately
 security import /tmp/temp_cert_$$.pem -k buildagent -T /usr/bin/codesign >/dev/null
 security import /tmp/temp_key_$$.pem -k buildagent -T /usr/bin/codesign >/dev/null

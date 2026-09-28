@@ -35,7 +35,9 @@ jobs:
   sign-and-notarize:
     # This environment must be protected. It contains the service-account token
     # that can retrieve the shared DDEV Developer ID private key.
-    if: github.event_name != 'pull_request'
+    # Fork PRs never receive signing credentials. Upstream PRs may run after a
+    # signing-environment reviewer approves the job.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     environment: signing
     runs-on: macos-26
     env:
@@ -82,5 +84,5 @@ jobs:
           export CERTFILE="$cert_file"
           for item in tests/*.bats; do
             echo "Running ${item}"
-            bats "$item"
+            bats --verbose-run --show-output-of-passing-tests "$item"
           done

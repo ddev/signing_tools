@@ -34,4 +34,4 @@ chmod 600 "$CERTFILE"
 export SIGNING_TOOLS_SIGNING_PASSWORD="$(op read "$CERTIFICATE_PASSWORD_REF")"
 export APP_SPECIFIC_PASSWORD="${APP_SPECIFIC_PASSWORD:-$(op read "$APP_SPECIFIC_PASSWORD_REF")}"
 
-bats --verbose-run tests
+bats --verbose-run --show-output-of-passing-tests tests

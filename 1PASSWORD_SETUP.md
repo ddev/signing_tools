@@ -34,6 +34,10 @@ Create a dedicated service account called `ddev-signing-tools-ci` with read-only
 access to the `ddev-signing` vault. Store its token in the protected GitHub
 environment named `signing` under the name `OP_SERVICE_ACCOUNT_TOKEN`.
 
+Configure the `signing` environment with required reviewers and prevent
+self-approval. Same-repository pull requests queue the signing job for this
+approval; fork pull requests cannot access signing credentials.
+
 Keep the token's recovery record in a separate administrator-only infrastructure
 vault, not in `ddev-signing`. Do not share this token with other repositories;
 give each repository its own service account for independent audit and revocation.
