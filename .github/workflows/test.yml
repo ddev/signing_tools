@@ -3,6 +3,7 @@ name: Signing integration
 on:
   push:
     branches: [master, main]
+  pull_request:
   schedule:
     - cron: '0 3 * * *'
   workflow_dispatch:
@@ -19,9 +20,22 @@ defaults:
     shell: bash
 
 jobs:
+  validate:
+    name: PR-safe validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check shell syntax
+        run: |
+          bash -n macos_sign.sh macos_notarize.sh windows_sign.sh test_signing_integration.sh
+      - name: Check workflow YAML
+        run: |
+          ruby -e 'require "yaml"; YAML.load_file(".github/workflows/test.yml"); puts "workflow YAML parses"'
+
   sign-and-notarize:
     # This environment must be protected. It contains the service-account token
     # that can retrieve the shared DDEV Developer ID private key.
+    if: github.event_name != 'pull_request'
     environment: signing
     runs-on: macos-26
     env:
